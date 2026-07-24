@@ -2,8 +2,8 @@
 ==================================================================================
  APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Predictivo
  Ingenio Incauca
- Alcance: Cosechadoras John Deere y Tractores de Alce (equipos en Standby)
- Desarrollado por: [Tu Nombre] · Electricista de Cosechadoras y Tractores
+ Alcance: Cosechadoras John Deere Case y Tractores Game (equipos en Standby)
+ Desarrollado por: [Cristian Andres Rubio] · Electricista de Cosechadoras y Tractores
  (código generado con apoyo de Claude/Anthropic como herramienta de soporte)
 ==================================================================================
 
