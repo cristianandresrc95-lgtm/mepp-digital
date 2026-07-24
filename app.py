@@ -92,8 +92,8 @@ COLUMNAS_STOCK = [
     "origen_maquina", "componente_relacionado", "estado_stock", "notas",
 ]
 
-CATEGORIAS = ["Sensor", "Relé", "Fusible", "Cableado / Ramal", "Luces / Señalización", "Otro"]
-TIPOS_MAQUINA = ["Cosechadora John Deere", "Tractor de Alce"]
+CATEGORIAS = ["Sensor", "Relé", "Fusible", "Cableado / Ramal", "Luces / Señalización","Bobina","Electrovalvula","Luces","Otro"]
+TIPOS_MAQUINA = ["Cosechadora John Deere","Cosechadora Case","Tractor Game"]
 ESTADOS = ["Verde", "Amarillo", "Rojo"]
 
 ESTADO_INFO = {
