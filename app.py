@@ -146,29 +146,45 @@ def siguiente_id(df: pd.DataFrame) -> int:
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Chakra+Petch:wght@400;500;600;700&display=swap');
 
     html, body, [class*="css"] {
-        font-family: 'Rajdhani', sans-serif !important;
-        font-size: 1.08rem;
+        font-family: 'Chakra Petch', sans-serif !important;
+        font-size: 1.12rem;
     }
+
+    /* ---------- Trasfondo general con patrón de circuito ---------- */
+    div[data-testid="stAppViewContainer"] {
+        background-color: #0B0F14;
+        background-image: url('app/static/bg-circuit.svg');
+        background-repeat: repeat;
+        background-size: 240px 240px;
+    }
+    section[data-testid="stSidebar"] > div {
+        background-color: #0E1218;
+        background-image: url('app/static/bg-circuit.svg');
+        background-repeat: repeat;
+        background-size: 240px 240px;
+    }
+    div[data-testid="stHeader"] { background: rgba(0,0,0,0); }
 
     /* ---------- Títulos principales ---------- */
     .titulo-app {
         font-family: 'Orbitron', sans-serif;
-        font-size: 2.4rem;
-        font-weight: 800;
+        font-size: 2.5rem;
+        font-weight: 900;
         letter-spacing: 1px;
         color: #39FF88;
         text-shadow: 0 0 14px rgba(57, 255, 136, 0.55), 0 0 2px rgba(57,255,136,0.8);
         margin-bottom: 2px;
     }
     .subtitulo-app {
-        color: #9FE8C8;
+        font-family: 'Chakra Petch', sans-serif;
+        color: #A9F5D6;
         margin-top: 0px;
-        font-size: 1.15rem;
+        font-size: 1.25rem;
         font-weight: 600;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
     }
 
     /* ---------- Encabezados de sección (##### en st.markdown) ---------- */
@@ -176,8 +192,48 @@ st.markdown(
         font-family: 'Orbitron', sans-serif !important;
         color: #5CF2C2 !important;
         letter-spacing: 0.6px;
-        font-size: 1.3rem !important;
+        font-size: 1.4rem !important;
         text-shadow: 0 0 8px rgba(92, 242, 194, 0.35);
+    }
+
+    /* ---------- Texto general de párrafos / markdown ---------- */
+    div[data-testid="stMarkdownContainer"] p {
+        font-size: 1.14rem;
+        line-height: 1.55;
+    }
+
+    /* ---------- Descripciones (st.caption) ---------- */
+    div[data-testid="stCaptionContainer"], div[data-testid="stCaptionContainer"] p {
+        font-size: 1.08rem !important;
+        color: #A9F5D6 !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.2px;
+    }
+
+    /* ---------- Etiquetas de campos (labels de inputs/selects) ---------- */
+    div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] label {
+        font-family: 'Chakra Petch', sans-serif !important;
+        font-size: 1.18rem !important;
+        font-weight: 600 !important;
+        color: #D6FFF0 !important;
+        letter-spacing: 0.3px;
+    }
+
+    /* ---------- Opciones del menú de navegación (radio lateral) ---------- */
+    section[data-testid="stSidebar"] div[role="radiogroup"] label p {
+        font-family: 'Chakra Petch', sans-serif !important;
+        font-size: 1.35rem !important;
+        font-weight: 700 !important;
+        color: #EAFFF6 !important;
+        letter-spacing: 0.3px;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label {
+        padding: 6px 0;
+    }
+
+    /* ---------- Texto dentro de tablas / data editor ---------- */
+    div[data-testid="stDataFrame"] * , div[data-testid="stTable"] * {
+        font-size: 1.02rem !important;
     }
 
     /* ---------- Badges de estado (semáforo) ---------- */
@@ -188,7 +244,7 @@ st.markdown(
         color: #05100A;
         font-family: 'Orbitron', sans-serif;
         font-weight: 700;
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         text-align: center;
         box-shadow: 0 0 16px currentColor;
     }
@@ -197,9 +253,9 @@ st.markdown(
     .card-kpi {
         position: relative;
         border-radius: 16px;
-        padding: 26px 18px;
+        padding: 28px 18px;
         text-align: center;
-        background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+        background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015));
         border: 1px solid rgba(57, 255, 136, 0.35);
         box-shadow: 0 0 24px rgba(57, 255, 136, 0.15), inset 0 0 20px rgba(255,255,255,0.03);
         backdrop-filter: blur(6px);
@@ -207,13 +263,13 @@ st.markdown(
     .card-kpi h1 {
         margin: 0;
         font-family: 'Orbitron', sans-serif;
-        font-size: 2.8rem;
+        font-size: 2.9rem;
         font-weight: 900;
         text-shadow: 0 0 18px currentColor;
     }
     .card-kpi p {
-        margin: 6px 0 0 0;
-        font-size: 1rem;
+        margin: 8px 0 0 0;
+        font-size: 1.08rem;
         font-weight: 600;
         letter-spacing: 0.4px;
         opacity: 0.95;
@@ -223,7 +279,7 @@ st.markdown(
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 14px !important;
         border: 1px solid rgba(57, 255, 136, 0.18) !important;
-        background: rgba(255,255,255,0.02);
+        background: rgba(255,255,255,0.025);
     }
 
     /* ---------- Botones ---------- */
@@ -231,6 +287,7 @@ st.markdown(
         font-family: 'Orbitron', sans-serif !important;
         letter-spacing: 0.5px;
         font-weight: 700 !important;
+        font-size: 1.02rem !important;
         border-radius: 10px !important;
         border: 1px solid rgba(57, 255, 136, 0.5) !important;
         box-shadow: 0 0 14px rgba(57, 255, 136, 0.25);
@@ -244,14 +301,18 @@ st.markdown(
         font-family: 'Orbitron', sans-serif !important;
         color: #39FF88 !important;
         text-shadow: 0 0 10px rgba(57,255,136,0.5);
-        font-size: 1.4rem !important;
+        font-size: 1.5rem !important;
     }
 
     /* ---------- Métricas nativas (st.metric) ---------- */
     div[data-testid="stMetricValue"] {
         font-family: 'Orbitron', sans-serif;
-        font-size: 1.9rem;
+        font-size: 2rem;
         text-shadow: 0 0 10px rgba(57,255,136,0.35);
+    }
+    div[data-testid="stMetricLabel"] p {
+        font-size: 1.05rem !important;
+        color: #A9F5D6 !important;
     }
     </style>
     """,
