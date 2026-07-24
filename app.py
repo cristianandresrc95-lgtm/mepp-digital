@@ -766,4 +766,3 @@ elif pagina == "📊 Dashboard Supervisor":
                 st.dataframe(pendientes_stock, hide_index=True, use_container_width=True)
             else:
                 st.info("No hay repuestos registrados todavía.")
-cambio de texto
