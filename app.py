@@ -2,8 +2,8 @@
 ==================================================================================
  APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Predictivo
  Ingenio Incauca
- Alcance: Cosechadoras John Deere Case y Tractores Game (equipos en Standby)
- Desarrollado por: [Cristian Andres Rubio] · Electricista de Cosechadoras y Tractores
+ Alcance: Cosechadoras John Deere y Tractores de Alce (equipos en Standby)
+ Desarrollado por: [Tu Nombre] · Electricista de Cosechadoras y Tractores
  (código generado con apoyo de Claude/Anthropic como herramienta de soporte)
 ==================================================================================
 
@@ -64,7 +64,7 @@ def inyectar_pwa():
             }
             addTag('link', {rel: 'manifest', href: 'app/static/manifest.json'});
             addTag('link', {rel: 'apple-touch-icon', href: 'app/static/apple-touch-icon.png'});
-            addTag('meta', {name: 'theme-color', content: '#1B4332'});
+            addTag('meta', {name: 'theme-color', content: '#0B0F14'});
             addTag('meta', {name: 'apple-mobile-web-app-capable', content: 'yes'});
             addTag('meta', {name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent'});
             addTag('meta', {name: 'apple-mobile-web-app-title', content: 'IncaVolt'});
@@ -97,9 +97,9 @@ TIPOS_MAQUINA = ["Cosechadora John Deere", "Tractor de Alce"]
 ESTADOS = ["Verde", "Amarillo", "Rojo"]
 
 ESTADO_INFO = {
-    "Verde":    {"emoji": "🟢", "label": "Operativo",  "color": "#2E7D32", "desc": "Componente en condición normal, sin novedad."},
-    "Amarillo": {"emoji": "🟡", "label": "Alerta",     "color": "#F2A900", "desc": "Puede continuar operando bajo monitoreo preventivo."},
-    "Rojo":     {"emoji": "🔴", "label": "Crítico",    "color": "#C62828", "desc": "Requiere cambio o intervención urgente."},
+    "Verde":    {"emoji": "🟢", "label": "Operativo",  "color": "#39FF88", "desc": "Componente en condición normal, sin novedad."},
+    "Amarillo": {"emoji": "🟡", "label": "Alerta",     "color": "#FFD60A", "desc": "Puede continuar operando bajo monitoreo preventivo."},
+    "Rojo":     {"emoji": "🔴", "label": "Crítico",    "color": "#FF3B5C", "desc": "Requiere cambio o intervención urgente."},
 }
 
 PRIORIDADES = ["Alta", "Media", "Baja"]
@@ -146,33 +146,112 @@ def siguiente_id(df: pd.DataFrame) -> int:
 st.markdown(
     """
     <style>
-    .badge {
-        display: inline-block;
-        padding: 3px 12px;
-        border-radius: 14px;
-        color: white;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-align: center;
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Rajdhani', sans-serif !important;
+        font-size: 1.08rem;
     }
-    .card-kpi {
-        border-radius: 10px;
-        padding: 18px 16px;
-        color: white;
-        text-align: center;
-    }
-    .card-kpi h1 { margin: 0; font-size: 2.1rem; }
-    .card-kpi p { margin: 0; font-size: 0.9rem; opacity: 0.92; }
+
+    /* ---------- Títulos principales ---------- */
     .titulo-app {
-        font-size: 1.9rem;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.4rem;
         font-weight: 800;
-        color: #1B4332;
-        margin-bottom: 0px;
+        letter-spacing: 1px;
+        color: #39FF88;
+        text-shadow: 0 0 14px rgba(57, 255, 136, 0.55), 0 0 2px rgba(57,255,136,0.8);
+        margin-bottom: 2px;
     }
     .subtitulo-app {
-        color: #555;
+        color: #9FE8C8;
         margin-top: 0px;
-        font-size: 0.95rem;
+        font-size: 1.15rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* ---------- Encabezados de sección (##### en st.markdown) ---------- */
+    h4, h5, h6 {
+        font-family: 'Orbitron', sans-serif !important;
+        color: #5CF2C2 !important;
+        letter-spacing: 0.6px;
+        font-size: 1.3rem !important;
+        text-shadow: 0 0 8px rgba(92, 242, 194, 0.35);
+    }
+
+    /* ---------- Badges de estado (semáforo) ---------- */
+    .badge {
+        display: inline-block;
+        padding: 6px 18px;
+        border-radius: 20px;
+        color: #05100A;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-align: center;
+        box-shadow: 0 0 16px currentColor;
+    }
+
+    /* ---------- Tarjetas KPI tipo panel futurista ---------- */
+    .card-kpi {
+        position: relative;
+        border-radius: 16px;
+        padding: 26px 18px;
+        text-align: center;
+        background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+        border: 1px solid rgba(57, 255, 136, 0.35);
+        box-shadow: 0 0 24px rgba(57, 255, 136, 0.15), inset 0 0 20px rgba(255,255,255,0.03);
+        backdrop-filter: blur(6px);
+    }
+    .card-kpi h1 {
+        margin: 0;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        text-shadow: 0 0 18px currentColor;
+    }
+    .card-kpi p {
+        margin: 6px 0 0 0;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        opacity: 0.95;
+    }
+
+    /* ---------- Contenedores generales (st.container(border=True)) ---------- */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        border-radius: 14px !important;
+        border: 1px solid rgba(57, 255, 136, 0.18) !important;
+        background: rgba(255,255,255,0.02);
+    }
+
+    /* ---------- Botones ---------- */
+    button[kind="primary"], .stButton>button, .stFormSubmitButton>button {
+        font-family: 'Orbitron', sans-serif !important;
+        letter-spacing: 0.5px;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(57, 255, 136, 0.5) !important;
+        box-shadow: 0 0 14px rgba(57, 255, 136, 0.25);
+    }
+
+    /* ---------- Sidebar ---------- */
+    section[data-testid="stSidebar"] {
+        border-right: 1px solid rgba(57, 255, 136, 0.25);
+    }
+    section[data-testid="stSidebar"] h3 {
+        font-family: 'Orbitron', sans-serif !important;
+        color: #39FF88 !important;
+        text-shadow: 0 0 10px rgba(57,255,136,0.5);
+        font-size: 1.4rem !important;
+    }
+
+    /* ---------- Métricas nativas (st.metric) ---------- */
+    div[data-testid="stMetricValue"] {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.9rem;
+        text-shadow: 0 0 10px rgba(57,255,136,0.35);
     }
     </style>
     """,
@@ -182,7 +261,11 @@ st.markdown(
 
 def badge_estado(estado: str) -> str:
     info = ESTADO_INFO.get(estado, {"color": "#999", "emoji": "⚪", "label": estado})
-    return f'<span class="badge" style="background-color:{info["color"]};">{info["emoji"]} {info["label"]}</span>'
+    color = info["color"]
+    return (
+        f'<span class="badge" style="background-color:{color}; '
+        f'box-shadow:0 0 16px {color};">{info["emoji"]} {info["label"]}</span>'
+    )
 
 
 # ----------------------------------------------------------------------------
@@ -529,19 +612,19 @@ elif pagina == "📊 Dashboard Supervisor":
 
         k1, k2, k3, k4, k5 = st.columns(5)
         tarjetas = [
-            (k1, "Componentes revisados", total, "#2C3E50"),
+            (k1, "Componentes revisados", total, "#5CF2C2"),
             (k2, "🟢 Operativos", n_verde, ESTADO_INFO["Verde"]["color"]),
             (k3, "🟡 En alerta", n_amarillo, ESTADO_INFO["Amarillo"]["color"]),
             (k4, "🔴 Críticos", n_rojo, ESTADO_INFO["Rojo"]["color"]),
-            (k5, "% en alerta / crítico", f"{pct_critico}%", "#6D4C41"),
+            (k5, "% en alerta / crítico", f"{pct_critico}%", "#8BD8FF"),
         ]
         for col, titulo, valor, color in tarjetas:
             with col:
                 st.markdown(
                     f"""
-                    <div class="card-kpi" style="background-color:{color};">
+                    <div class="card-kpi" style="border-color:{color}; box-shadow:0 0 22px {color}55, inset 0 0 20px rgba(255,255,255,0.03); color:{color};">
                         <h1>{valor}</h1>
-                        <p>{titulo}</p>
+                        <p style="color:#E8FFF3;">{titulo}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,

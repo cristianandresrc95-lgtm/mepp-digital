@@ -4,8 +4,8 @@
   "description": "Sistema de mantenimiento eléctrico preventivo para cosechadoras John Deere y tractores de alce - Incauca",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#1B4332",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
   "orientation": "portrait-primary",
   "icons": [
     {
