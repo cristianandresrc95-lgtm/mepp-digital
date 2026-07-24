@@ -1,10 +1,10 @@
 """
 ==================================================================================
- APP: MEPP DIGITAL - Mantenimiento Eléctrico Preventivo y Predictivo
- Prototipo para Ingenio Azucarero
+ APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Predictivo
+ Ingenio Incauca
  Alcance: Cosechadoras John Deere y Tractores de Alce (equipos en Standby)
- Autor del prototipo: Generado con apoyo de Claude (Anthropic) para presentación
-                       interna del Tecnólogo en Electricidad Industrial.
+ Desarrollado por: [Tu Nombre] · Electricista de Cosechadoras y Tractores
+ (código generado con apoyo de Claude/Anthropic como herramienta de soporte)
 ==================================================================================
 
 Cómo ejecutar:
@@ -24,16 +24,59 @@ from datetime import datetime, date
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import streamlit.components.v1 as components
+
+# ----------------------------------------------------------------------------
+# MARCA DE LA APLICACIÓN
+# ----------------------------------------------------------------------------
+NOMBRE_APP = "IncaVolt"
+SUBTITULO_APP = "Mantenimiento Eléctrico Preventivo · Incauca"
+DESARROLLADOR = "[Tu Nombre] · Electricista de Cosechadoras y Tractores"
 
 # ----------------------------------------------------------------------------
 # CONFIGURACIÓN GENERAL
 # ----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="MEPP Digital | Mantenimiento Eléctrico Preventivo",
-    page_icon="🔌",
+    page_title=f"{NOMBRE_APP} | Mantenimiento Eléctrico Preventivo",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+def inyectar_pwa():
+    """Inserta manifest.json y meta-tags en el <head> para que, al agregar
+    la app a la pantalla de inicio del celular, se abra en pantalla completa
+    con ícono y nombre propios (comportamiento tipo app nativa / PWA)."""
+    components.html(
+        """
+        <script>
+        (function () {
+            const parentDoc = window.parent.document;
+            function addTag(tag, attrs) {
+                const selector = tag + '[data-incavolt="true"]' +
+                    Object.entries(attrs).map(([k, v]) => `[${k}="${v}"]`).join('');
+                if (parentDoc.querySelector(selector)) return;
+                const el = parentDoc.createElement(tag);
+                el.setAttribute('data-incavolt', 'true');
+                for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+                parentDoc.head.appendChild(el);
+            }
+            addTag('link', {rel: 'manifest', href: 'app/static/manifest.json'});
+            addTag('link', {rel: 'apple-touch-icon', href: 'app/static/apple-touch-icon.png'});
+            addTag('meta', {name: 'theme-color', content: '#1B4332'});
+            addTag('meta', {name: 'apple-mobile-web-app-capable', content: 'yes'});
+            addTag('meta', {name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent'});
+            addTag('meta', {name: 'apple-mobile-web-app-title', content: 'IncaVolt'});
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
+inyectar_pwa()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ARCHIVO_INSPECCIONES = os.path.join(BASE_DIR, "inspecciones.csv")
@@ -146,8 +189,15 @@ def badge_estado(estado: str) -> str:
 # SIDEBAR / NAVEGACIÓN
 # ----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### 🔌 MEPP Digital")
-    st.caption("Mantenimiento Eléctrico Preventivo y Predictivo")
+    col_logo, col_txt = st.columns([1, 3])
+    with col_logo:
+        if os.path.exists(os.path.join(BASE_DIR, "static", "icon-192.png")):
+            st.image(os.path.join(BASE_DIR, "static", "icon-192.png"), width=48)
+        else:
+            st.markdown("### ⚡")
+    with col_txt:
+        st.markdown(f"### {NOMBRE_APP}")
+    st.caption(SUBTITULO_APP)
     st.markdown("---")
     pagina = st.radio(
         "Ir a:",
@@ -159,9 +209,11 @@ with st.sidebar:
         ],
     )
     st.markdown("---")
-    st.caption("Ingenio | Área de Mantenimiento Eléctrico")
+    st.caption("Ingenio Incauca | Área de Mantenimiento Eléctrico")
     st.caption("Flota: Cosechadoras John Deere y Tractores de Alce")
     st.caption(f"Sesión: {date.today().strftime('%d/%m/%Y')}")
+    st.markdown("---")
+    st.caption(f"👤 Desarrollado por {DESARROLLADOR}")
 
 df_insp = cargar_inspecciones()
 df_stock = cargar_stock()
