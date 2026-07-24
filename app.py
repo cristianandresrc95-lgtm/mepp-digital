@@ -31,7 +31,7 @@ import streamlit.components.v1 as components
 # ----------------------------------------------------------------------------
 NOMBRE_APP = "IncaVolt"
 SUBTITULO_APP = "Mantenimiento Eléctrico Preventivo · Incauca"
-DESARROLLADOR = "Cristian Rubio · Electricista de Cosechadoras y Tractores"
+DESARROLLADOR = "(Cristian Rubio) · Electricista de Cosechadoras y Tractores"
 
 # ----------------------------------------------------------------------------
 # CONFIGURACIÓN GENERAL
