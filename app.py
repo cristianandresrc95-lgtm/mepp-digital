@@ -1,19 +1,10 @@
 """
 ==================================================================================
- APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Predictivo
+ APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Control de Costos
  Ingenio Incauca
- Alcance: Cosechadoras John Deere y Tractores de Alce (equipos en Standby)
- Desarrollado por: Cristian Rubio · Electricista de Cosechadoras y Tractores
- (código generado con apoyo de Claude/Anthropic como herramienta de soporte)
+ Alcance: Cosechadoras John Deere/Case y Tractores Game (equipos en Standby)
+ Desarrollado por: Cristian Rubio · Encargado de Electricidad
 ==================================================================================
-
-Cómo ejecutar:
-    1) pip install streamlit pandas plotly
-    2) streamlit run app.py
-
-El prototipo persiste los datos en tres archivos CSV locales
-(inspecciones.csv, stock_repuestos.csv e inventario_taller.csv) ubicados junto a este script,
-para que la información no se pierda al cerrar el navegador.
 """
 
 import os
@@ -29,7 +20,7 @@ import streamlit.components.v1 as components
 # ----------------------------------------------------------------------------
 NOMBRE_APP = "IncaVolt"
 SUBTITULO_APP = "Mantenimiento Eléctrico Preventivo · Incauca"
-DESARROLLADOR = "(Cristian Rubio) · Electricista de Cosechadoras"
+DESARROLLADOR = "(Cristian Rubio) · Encargado de Electricidad de Cosechadoras"
 
 # ----------------------------------------------------------------------------
 # CONFIGURACIÓN GENERAL
@@ -43,9 +34,7 @@ st.set_page_config(
 
 
 def inyectar_pwa():
-    """Inserta manifest.json y meta-tags en el <head> para que, al agregar
-    la app a la pantalla de inicio del celular, se abra en pantalla completa
-    con ícono y nombre propios (comportamiento tipo app nativa / PWA)."""
+    """Inserta manifest.json y meta-tags en el head para el comportamiento tipo PWA."""
     components.html(
         """
         <script>
@@ -95,8 +84,8 @@ COLUMNAS_INVENTARIO = [
     "repuesto_id", "nombre_material", "part_number", "categoria", "cantidad_disponible", "costo_unitario_cop", "ubicacion_estante", "alerta_minimo"
 ]
 
-CATEGORIAS = ["Sensor", "Relé", "Fusible", "Cableado / Ramal", "Luces / Señalización","Bobina","Electrovalvula","Luces","Otro"]
-TIPOS_MAQUINA = ["Cosechadora John Deere","Cosechadora Case","Tractor Game"]
+CATEGORIAS = ["Sensor", "Relé", "Fusible", "Cableado / Ramal", "Luces / Señalización", "Bobina", "Electrovalvula", "Luces", "Otro"]
+TIPOS_MAQUINA = ["Cosechadora John Deere", "Cosechadora Case", "Tractor Game"]
 ESTADOS = ["Verde", "Amarillo", "Rojo"]
 
 ESTADO_INFO = {
@@ -110,7 +99,7 @@ ESTADOS_STOCK = ["Pendiente por solicitar", "Solicitado a bodega", "Recibido / L
 
 
 # ----------------------------------------------------------------------------
-# CAPA DE DATOS (CSV como persistencia simple para el prototipo)
+# CAPA DE DATOS
 # ----------------------------------------------------------------------------
 def _crear_archivo_si_no_existe(ruta, columnas):
     if not os.path.exists(ruta):
@@ -163,7 +152,7 @@ def siguiente_id(df: pd.DataFrame, llave="id") -> int:
 
 
 # ----------------------------------------------------------------------------
-# ESTILOS COMPLETOS Y CORREGIDOS
+# ESTILOS ORIGINALES
 # ----------------------------------------------------------------------------
 st.markdown(
     """
@@ -175,7 +164,6 @@ st.markdown(
         font-size: 1.12rem;
     }
 
-    /* ---------- Trasfondo general con patrón de circuito ---------- */
     div[data-testid="stAppViewContainer"] {
         background-color: #0B0F14;
     }
@@ -184,7 +172,6 @@ st.markdown(
     }
     div[data-testid="stHeader"] { background: rgba(0,0,0,0); }
 
-    /* ---------- Títulos principales ---------- */
     .titulo-app {
         font-family: 'Orbitron', sans-serif;
         font-size: 2.5rem;
@@ -204,13 +191,13 @@ st.markdown(
         margin-bottom: 25px;
     }
 
-    /* ---------- Encabezados de sección ---------- */
     h4, h5, h6 {
         font-family: 'Orbitron', sans-serif !important;
         color: #5CF2C2 !important;
         letter-spacing: 0.6px;
         font-size: 1.4rem !important;
         text-shadow: 0 0 8px rgba(92, 242, 194, 0.35);
+        margin-top: 15px !important;
     }
 
     div[data-testid="stMarkdownContainer"] p {
@@ -225,7 +212,6 @@ st.markdown(
         letter-spacing: 0.2px;
     }
 
-    /* Corrección final de la etiqueta rota del diseño original */
     div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] label {
         color: #5CF2C2 !important;
         font-weight: 600 !important;
@@ -247,3 +233,29 @@ st.markdown(
     .alerta-baja {
         background-color: #FF3B5C;
         color: white;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .stock-ok {
+        background-color: #28a745;
+        color: white;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: bold;
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ----------------------------------------------------------------------------
+# INTERFAZ VISUAL
+# ----------------------------------------------------------------------------
+st.markdown(f'<div class="titulo-app">⚡ {NOMBRE_APP}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="subtitulo-app">{SUBTITULO_APP} · {DESARROLLADOR}</div>', unsafe_allow_html=True)
+
+df_insp = cargar_inspecciones()
+df_stk = cargar_stock()
