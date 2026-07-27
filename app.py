@@ -1,6 +1,6 @@
 """
 ==================================================================================
- APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Predictivo
+ APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Control de Costos
  Ingenio Incauca
  Alcance: Cosechadoras John Deere y Tractores de Alce (equipos en Standby)
  Desarrollado por: Cristian Rubio · Electricista de Cosechadoras y Tractores
@@ -10,22 +10,16 @@
 Cómo ejecutar:
     1) pip install streamlit pandas plotly
     2) streamlit run app.py
-
-El prototipo persiste los datos en tres archivos CSV locales
-(inspecciones.csv, stock_repuestos.csv e inventario_taller.csv) ubicados junto a este script,
-para que la información no se pierda al cerrar el navegador.
 """
 
 import os
 from datetime import datetime, date
-
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-import streamlit.components.v1 as components
 
 # ----------------------------------------------------------------------------
-# MARCA DE LA APLICACIÓN
+# MARCA DE LA APLICACIÓN ORIGINAL
 # ----------------------------------------------------------------------------
 NOMBRE_APP = "IncaVolt"
 SUBTITULO_APP = "Mantenimiento Eléctrico Preventivo · Incauca"
@@ -40,39 +34,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-
-def inyectar_pwa():
-    """Inserta manifest.json y meta-tags en el head para el comportamiento tipo PWA."""
-    components.html(
-        """
-        <script>
-        (function () {
-            const parentDoc = window.parent.document;
-            function addTag(tag, attrs) {
-                const selector = tag + '[data-incavolt="true"]' +
-                    Object.entries(attrs).map(([k, v]) => `[${k}="${v}"]`).join('');
-                if (parentDoc.querySelector(selector)) return;
-                const el = parentDoc.createElement(tag);
-                el.setAttribute('data-incavolt', 'true');
-                for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-                parentDoc.head.appendChild(el);
-            }
-            addTag('link', {rel: 'manifest', href: 'app/static/manifest.json'});
-            addTag('link', {rel: 'apple-touch-icon', href: 'app/static/apple-touch-icon.png'});
-            addTag('meta', {name: 'theme-color', content: '#0B0F14'});
-            addTag('meta', {name: 'apple-mobile-web-app-capable', content: 'yes'});
-            addTag('meta', {name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent'});
-            addTag('meta', {name: 'apple-mobile-web-app-title', content: 'IncaVolt'});
-        })();
-        </script>
-        """,
-        height=0,
-        width=0,
-    )
-
-
-inyectar_pwa()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ARCHIVO_INSPECCIONES = os.path.join(BASE_DIR, "inspecciones.csv")
@@ -106,158 +67,118 @@ ESTADO_INFO = {
 PRIORIDADES = ["Alta", "Media", "Baja"]
 ESTADOS_STOCK = ["Pendiente por solicitar", "Solicitado a bodega", "Recibido / Listo en stock"]
 
-
 # ----------------------------------------------------------------------------
-# CAPA DE DATOS
+# CAPA DE DATOS BASE
 # ----------------------------------------------------------------------------
 def _crear_archivo_si_no_existe(ruta, columnas):
     if not os.path.exists(ruta):
         pd.DataFrame(columns=columnas).to_csv(ruta, index=False)
 
-
 def cargar_inspecciones() -> pd.DataFrame:
     _crear_archivo_si_no_existe(ARCHIVO_INSPECCIONES, COLUMNAS_INSPECCION)
-    df = pd.read_csv(ARCHIVO_INSPECCIONES, dtype=str).fillna("")
-    return df
-
+    return pd.read_csv(ARCHIVO_INSPECCIONES, dtype=str).fillna("")
 
 def guardar_inspecciones(df: pd.DataFrame):
     df.to_csv(ARCHIVO_INSPECCIONES, index=False)
 
-
 def cargar_stock() -> pd.DataFrame:
     _crear_archivo_si_no_existe(ARCHIVO_STOCK, COLUMNAS_STOCK)
-    df = pd.read_csv(ARCHIVO_STOCK, dtype=str).fillna("")
-    return df
-
+    return pd.read_csv(ARCHIVO_STOCK, dtype=str).fillna("")
 
 def guardar_stock(df: pd.DataFrame):
     df.to_csv(ARCHIVO_STOCK, index=False)
-
 
 def cargar_inventario() -> pd.DataFrame:
     _crear_archivo_si_no_existe(ARCHIVO_INVENTARIO, COLUMNAS_INVENTARIO)
     df = pd.read_csv(ARCHIVO_INVENTARIO, dtype=str).fillna("")
     if df.empty or "part_number" not in df.columns:
         datos_iniciales = [
-            {"repuesto_id": "1", "nombre_material": "Sensor RPM John Deere", "part_number": "RE519144", "categoria": "Sensor", "cantidad_disponible": "12", "costo_unitario_cop": "320000", "ubicacion_estante": "Estante A-1", "alerta_minimo": "2"},
-            {"repuesto_id": "2", "nombre_material": "Relé 5 Pines 12V Heavy Duty", "part_number": "AR27401", "categoria": "Relé", "cantidad_disponible": "30", "costo_unitario_cop": "45000", "ubicacion_estante": "Estante B-3", "alerta_minimo": "5"},
-            {"repuesto_id": "3", "nombre_material": "Fusible 15A Tipo Ficha", "part_number": "AT146055", "categoria": "Fusible", "cantidad_disponible": "100", "costo_unitario_cop": "3500", "ubicacion_estante": "Gaveta C-1", "alerta_minimo": "10"},
-            {"repuesto_id": "4", "nombre_material": "Electrovalvula de Alce Tractor Game", "part_number": "GAME-E04", "categoria": "Electrovalvula", "cantidad_disponible": "6", "costo_unitario_cop": "850000", "ubicacion_estante": "Estante D-2", "alerta_minimo": "1"},
+            {"repuesto_id": "1", "nombre_material": "Sensor RPM John Deere", "part_number": "RE519144", "categoria": "Sensor", "cantidad_disponible": "15", "costo_unitario_cop": "320000", "ubicacion_estante": "Estante A-1", "alerta_minimo": "2"},
+            {"repuesto_id": "2", "nombre_material": "Relé 5 Pines 12V Heavy Duty", "part_number": "AR27401", "categoria": "Relé", "cantidad_disponible": "35", "costo_unitario_cop": "45000", "ubicacion_estante": "Estante B-3", "alerta_minimo": "5"},
+            {"repuesto_id": "3", "nombre_material": "Fusible 15A Tipo Ficha", "part_number": "AT146055", "categoria": "Fusible", "cantidad_disponible": "120", "costo_unitario_cop": "3500", "ubicacion_estante": "Gaveta C-1", "alerta_minimo": "10"},
+            {"repuesto_id": "4", "nombre_material": "Electrovalvula de Alce Tractor Game", "part_number": "GAME-E04", "categoria": "Electrovalvula", "cantidad_disponible": "8", "costo_unitario_cop": "850000", "ubicacion_estante": "Estante D-2", "alerta_minimo": "1"},
         ]
         df = pd.DataFrame(datos_iniciales)
         df.to_csv(ARCHIVO_INVENTARIO, index=False)
     return df
 
-
 def guardar_inventario(df: pd.DataFrame):
     df.to_csv(ARCHIVO_INVENTARIO, index=False)
-
 
 def siguiente_id(df: pd.DataFrame, llave="id") -> int:
     if df.empty:
         return 1
     return int(pd.to_numeric(df[llave], errors="coerce").fillna(0).max()) + 1
 
-
 # ----------------------------------------------------------------------------
-# ESTILOS ORIGINALES
+# ESTILOS VISUALES COMPLETO NEÓN
 # ----------------------------------------------------------------------------
 st.markdown(
     """
     <style>
     @import url('https://googleapis.com');
-
-    html, body, [class*="css"] {
-        font-family: 'Chakra Petch', sans-serif !important;
-        font-size: 1.12rem;
-    }
-
-    div[data-testid="stAppViewContainer"] {
-        background-color: #0B0F14;
-    }
-    section[data-testid="stSidebar"] > div {
-        background-color: #0E1218;
-    }
-    div[data-testid="stHeader"] { background: rgba(0,0,0,0); }
-
-    .titulo-app {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2.5rem;
-        font-weight: 900;
-        letter-spacing: 1px;
-        color: #39FF88;
-        text-shadow: 0 0 14px rgba(57, 255, 136, 0.55), 0 0 2px rgba(57,255,136,0.8);
-        margin-bottom: 2px;
-    }
-    .subtitulo-app {
-        font-family: 'Chakra Petch', sans-serif;
-        color: #A9F5D6;
-        margin-top: 0px;
-        font-size: 1.25rem;
-        font-weight: 600;
-        letter-spacing: 0.4px;
-        margin-bottom: 25px;
-    }
-
-    h4, h5, h6 {
-        font-family: 'Orbitron', sans-serif !important;
-        color: #5CF2C2 !important;
-        letter-spacing: 0.6px;
-        font-size: 1.4rem !important;
-        text-shadow: 0 0 8px rgba(92, 242, 194, 0.35);
-        margin-top: 15px !important;
-    }
-
-    div[data-testid="stMarkdownContainer"] p {
-        font-size: 1.14rem;
-        line-height: 1.55;
-    }
-
-    div[data-testid="stCaptionContainer"], div[data-testid="stCaptionContainer"] p {
-        font-size: 1.08rem !important;
-        color: #A9F5D6 !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.2px;
-    }
-
-    div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] label {
-        color: #5CF2C2 !important;
-        font-weight: 600 !important;
-    }
-    
-    .card-estado {
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        border: 1px solid #233342;
-    }
-    .metrica-card {
-        background-color: #121820;
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid #233342;
-        text-align: center;
-    }
-    .alerta-baja {
-        background-color: #FF3B5C;
-        color: white;
-        padding: 10px;
-        border-radius: 6px;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-    .stock-ok {
-        background-color: #28a745;
-        color: white;
-        padding: 10px;
-        border-radius: 6px;
-        font-weight: bold;
-        text-align: center;
-    }
+    html, body, [class*="css"] { font-family: 'Chakra Petch', sans-serif !important; font-size: 1.12rem; }
+    div[data-testid="stAppViewContainer"] { background-color: #0B0F14; }
+    .titulo-app { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; font-weight: 900; color: #39FF88; text-shadow: 0 0 14px rgba(57, 255, 136, 0.55); margin-bottom: 2px; }
+    .subtitulo-app { color: #A9F5D6; font-size: 1.25rem; font-weight: 600; margin-bottom: 25px; }
+    div[data-testid="stWidgetLabel"] p { color: #5CF2C2 !important; font-weight: 600 !important; }
+    .metrica-card { background-color: #121820; padding: 15px; border-radius: 8px; border: 1px solid #233342; text-align: center; }
+    .alerta-baja { background-color: #FF3B5C; color: white; padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 8px; }
+    .stock-ok { background-color: #28a745; color: white; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; }
     </style>
     """,
     unsafe_allow_html=True
 )
 
+st.markdown(f'<div class="titulo-app">⚡ {NOMBRE_APP}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="subtitulo-app">{SUBTITULO_APP} · {DESARROLLADOR}</div>', unsafe_allow_html=True)
 
+df_insp = cargar_inspecciones()
+df_stk = cargar_stock()
+df_inv = cargar_inventario()
+
+# Tus 3 pestañas originales del menú principal
+pestana1, pestana2, pestana3 = st.tabs(["📋 Inspecciones y Uso", "📦 Inventario de Taller", "🔧 Stock / Pedidos y Jefatura"])
+
+# PESTAÑA 1: INSPECCIONES
+with pestana1:
+    st.markdown("##### Registrar Reporte Eléctrico de Campo")
+    with st.form("form_inspeccion", clear_on_submit=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            tipo_maq = st.selectbox("Equipo", TIPOS_MAQUINA)
+            id_maq = st.text_input("Identificador (Ej: CH-04, TR-12)")
+            cat = st.selectbox("Categoría del Componente", CATEGORIAS)
+            comp = st.text_input("Componente Específico")
+        with col2:
+            est = st.radio("Estado de Condición", ESTADOS, horizontal=True)
+            opciones_select = ["Ninguno / No requirió repuesto"] + df_inv["nombre_material"].tolist()
+            seleccion_raw = st.selectbox("Material del Taller Utilizado", opciones_select)
+            cant_usada = st.number_input("Cantidad Utilizada en Reparación", min_value=0, step=1, value=0)
+            tecnico = st.text_input("Técnico Encargado", value="Cristian Rubio")
+            
+        obs = st.text_area("Observaciones / Novedad en campo")
+        enviar_insp = st.form_submit_button("Guardar Inspección en Local")
+        
+        if enviar_insp:
+            if not id_maq or not comp:
+                st.error("Por favor completa el Identificador y el Componente.")
+            else:
+                proceder = True
+                costo_total = 0
+                if seleccion_raw != "Ninguno / No requirió repuesto" and cant_usada > 0:
+                    stock_actual = int(df_inv.loc[df_inv["nombre_material"] == seleccion_raw, "cantidad_disponible"].values[0])
+                    costo_u = float(df_inv.loc[df_inv["nombre_material"] == seleccion_raw, "costo_unitario_cop"].values[0])
+                    costo_total = costo_u * cant_usada
+                    if cant_usada > stock_actual:
+                        st.error(f"❌ Stock insuficiente. Solo quedan {stock_actual} unidades.")
+                        proceder = False
+                    else:
+                        df_inv.loc[df_inv["nombre_material"] == seleccion_raw, "cantidad_disponible"] = str(stock_actual - cant_usada)
+                        guardar_inventario(df_inv)
+                
+                if proceder:
+                    nuevo_id = siguiente_id(df_insp)
+                    nueva_fila = {
+                        "id": str(nuevo_id), "fecha": date.today().strftime("%Y-%m-%d"), "hora": datetime.now().strftime("%H:%M"),
+                        "tipo_maquina": tipo_maq, "identificador": id_maq.upper(), "categoria": cat, "componente": comp, "estado": est,
