@@ -1,10 +1,19 @@
 """
 ==================================================================================
- APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Control de Costos
+ APP: INCAVOLT - Mantenimiento Eléctrico Preventivo y Predictivo
  Ingenio Incauca
- Alcance: Cosechadoras John Deere/Case y Tractores Game (equipos en Standby)
- Desarrollado por: Cristian Rubio · Encargado de Electricidad
+ Alcance: Cosechadoras John Deere y Tractores de Alce (equipos en Standby)
+ Desarrollado por: Cristian Rubio · Electricista de Cosechadoras y Tractores
+ (código generado con apoyo de Claude/Anthropic como herramienta de soporte)
 ==================================================================================
+
+Cómo ejecutar:
+    1) pip install streamlit pandas plotly
+    2) streamlit run app.py
+
+El prototipo persiste los datos en tres archivos CSV locales
+(inspecciones.csv, stock_repuestos.csv e inventario_taller.csv) ubicados junto a este script,
+para que la información no se pierda al cerrar el navegador.
 """
 
 import os
@@ -251,11 +260,4 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ----------------------------------------------------------------------------
-# INTERFAZ VISUAL
-# ----------------------------------------------------------------------------
-st.markdown(f'<div class="titulo-app">⚡ {NOMBRE_APP}</div>', unsafe_allow_html=True)
-st.markdown(f'<div class="subtitulo-app">{SUBTITULO_APP} · {DESARROLLADOR}</div>', unsafe_allow_html=True)
 
-df_insp = cargar_inspecciones()
-df_stk = cargar_stock()
