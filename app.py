@@ -81,15 +81,34 @@ inyectar_pwa()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ARCHIVO_INSPECCIONES = os.path.join(BASE_DIR, "inspecciones.csv")
 ARCHIVO_STOCK = os.path.join(BASE_DIR, "stock_repuestos.csv")
+ARCHIVO_INVENTARIO = os.path.join(BASE_DIR, "inventario.csv")
+ARCHIVO_MOVIMIENTOS = os.path.join(BASE_DIR, "movimientos_inventario.csv")
+ARCHIVO_PRESUPUESTO = os.path.join(BASE_DIR, "presupuesto_maquinas.csv")
 
 COLUMNAS_INSPECCION = [
     "id", "fecha", "hora", "tipo_maquina", "identificador", "categoria",
     "componente", "estado", "observaciones", "tecnico",
+    "ejecutado", "fecha_ejecucion",
 ]
 
 COLUMNAS_STOCK = [
     "id", "fecha_solicitud", "repuesto", "cantidad", "prioridad",
     "origen_maquina", "componente_relacionado", "estado_stock", "notas",
+]
+
+COLUMNAS_INVENTARIO = [
+    "id", "material", "categoria", "unidad", "cantidad_actual",
+    "cantidad_minima", "costo_unitario", "ubicacion", "notas",
+]
+
+COLUMNAS_MOVIMIENTOS = [
+    "id", "fecha", "tipo_movimiento", "material", "cantidad",
+    "motivo", "inspeccion_id", "tecnico",
+]
+
+COLUMNAS_PRESUPUESTO = [
+    "id", "identificador_maquina", "tipo_maquina", "periodo",
+    "presupuesto_asignado", "notas",
 ]
 
 CATEGORIAS = ["Sensor", "Relé", "Fusible", "Cableado / Ramal", "Luces / Señalización", "Otro"]
@@ -104,6 +123,7 @@ ESTADO_INFO = {
 
 PRIORIDADES = ["Alta", "Media", "Baja"]
 ESTADOS_STOCK = ["Pendiente por solicitar", "Solicitado a bodega", "Recibido / Listo en stock"]
+UNIDADES_MATERIAL = ["unidad(es)", "metro(s)", "rollo(s)", "caja(s)", "kit(s)"]
 
 
 # ----------------------------------------------------------------------------
@@ -114,9 +134,20 @@ def _crear_archivo_si_no_existe(ruta, columnas):
         pd.DataFrame(columns=columnas).to_csv(ruta, index=False)
 
 
+def _asegurar_columnas(df: pd.DataFrame, columnas: list, valores_default: dict = None) -> pd.DataFrame:
+    """Agrega columnas nuevas a archivos CSV antiguos que fueron creados
+    antes de que existieran (evita romper datos ya guardados)."""
+    valores_default = valores_default or {}
+    for col in columnas:
+        if col not in df.columns:
+            df[col] = valores_default.get(col, "")
+    return df[columnas]
+
+
 def cargar_inspecciones() -> pd.DataFrame:
     _crear_archivo_si_no_existe(ARCHIVO_INSPECCIONES, COLUMNAS_INSPECCION)
     df = pd.read_csv(ARCHIVO_INSPECCIONES, dtype=str).fillna("")
+    df = _asegurar_columnas(df, COLUMNAS_INSPECCION, {"ejecutado": "No"})
     return df
 
 
@@ -127,11 +158,45 @@ def guardar_inspecciones(df: pd.DataFrame):
 def cargar_stock() -> pd.DataFrame:
     _crear_archivo_si_no_existe(ARCHIVO_STOCK, COLUMNAS_STOCK)
     df = pd.read_csv(ARCHIVO_STOCK, dtype=str).fillna("")
+    df = _asegurar_columnas(df, COLUMNAS_STOCK)
     return df
 
 
 def guardar_stock(df: pd.DataFrame):
     df.to_csv(ARCHIVO_STOCK, index=False)
+
+
+def cargar_inventario() -> pd.DataFrame:
+    _crear_archivo_si_no_existe(ARCHIVO_INVENTARIO, COLUMNAS_INVENTARIO)
+    df = pd.read_csv(ARCHIVO_INVENTARIO, dtype=str).fillna("")
+    df = _asegurar_columnas(df, COLUMNAS_INVENTARIO, {"costo_unitario": "0"})
+    return df
+
+
+def guardar_inventario(df: pd.DataFrame):
+    df.to_csv(ARCHIVO_INVENTARIO, index=False)
+
+
+def cargar_movimientos() -> pd.DataFrame:
+    _crear_archivo_si_no_existe(ARCHIVO_MOVIMIENTOS, COLUMNAS_MOVIMIENTOS)
+    df = pd.read_csv(ARCHIVO_MOVIMIENTOS, dtype=str).fillna("")
+    df = _asegurar_columnas(df, COLUMNAS_MOVIMIENTOS)
+    return df
+
+
+def guardar_movimientos(df: pd.DataFrame):
+    df.to_csv(ARCHIVO_MOVIMIENTOS, index=False)
+
+
+def cargar_presupuesto() -> pd.DataFrame:
+    _crear_archivo_si_no_existe(ARCHIVO_PRESUPUESTO, COLUMNAS_PRESUPUESTO)
+    df = pd.read_csv(ARCHIVO_PRESUPUESTO, dtype=str).fillna("")
+    df = _asegurar_columnas(df, COLUMNAS_PRESUPUESTO)
+    return df
+
+
+def guardar_presupuesto(df: pd.DataFrame):
+    df.to_csv(ARCHIVO_PRESUPUESTO, index=False)
 
 
 def siguiente_id(df: pd.DataFrame) -> int:
@@ -347,8 +412,10 @@ with st.sidebar:
         "Ir a:",
         [
             "📋 Registrar Inspección",
-            "🚦 Historial de Estados",
-            "🔧 Stock de Repuestos",
+            "🚦 Historial y Ejecución de OT",
+            "📦 Inventario de Taller",
+            "💰 Presupuesto por Máquina",
+            "🔧 Repuestos por Comprar",
             "📊 Dashboard Supervisor",
         ],
     )
@@ -361,6 +428,9 @@ with st.sidebar:
 
 df_insp = cargar_inspecciones()
 df_stock = cargar_stock()
+df_inventario = cargar_inventario()
+df_movimientos = cargar_movimientos()
+df_presupuesto = cargar_presupuesto()
 
 
 # ==============================================================================
@@ -464,11 +534,11 @@ if pagina == "📋 Registrar Inspección":
 # ==============================================================================
 # PÁGINA 2 · HISTORIAL DE ESTADOS
 # ==============================================================================
-elif pagina == "🚦 Historial de Estados":
-    st.markdown('<p class="titulo-app">🚦 Historial y Semáforo de Estados</p>', unsafe_allow_html=True)
+elif pagina == "🚦 Historial y Ejecución de OT":
+    st.markdown('<p class="titulo-app">🚦 Historial, Semáforo y Ejecución de Órdenes de Trabajo</p>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="subtitulo-app">Consulta todas las inspecciones registradas y actualiza el estado '
-        'cuando cambie la condición del componente.</p>',
+        '<p class="subtitulo-app">Consulta todas las inspecciones registradas, actualiza el estado y '
+        'confirma la ejecución de reparaciones descontando el material usado del inventario.</p>',
         unsafe_allow_html=True,
     )
     st.markdown("---")
@@ -507,6 +577,10 @@ elif pagina == "🚦 Historial de Estados":
                     st.caption(f"📅 {fila['fecha']} {fila['hora']} · 👤 {fila['tecnico']}")
                 with c3:
                     st.markdown(badge_estado(fila["estado"]), unsafe_allow_html=True)
+                    if fila.get("ejecutado") == "Sí":
+                        st.caption(f"✅ Ejecutado {fila.get('fecha_ejecucion', '')}")
+                    else:
+                        st.caption("⏳ Pendiente de ejecución")
 
         st.markdown("---")
         st.markdown("##### ✏️ Actualizar estado de un registro existente")
@@ -534,6 +608,90 @@ elif pagina == "🚦 Historial de Estados":
             st.success(f"Estado del registro #{id_sel} actualizado a {ESTADO_INFO[nuevo_estado]['emoji']} {nuevo_estado}.")
             st.rerun()
 
+        st.markdown("---")
+        st.markdown("##### ✅ Confirmar ejecución de orden de trabajo y descontar material")
+        st.caption(
+            "Cuando termines una reparación, selecciona la OT, el material del inventario que usaste "
+            "y la cantidad. Se descuenta automáticamente del inventario de taller."
+        )
+
+        if df_inventario.empty:
+            st.warning(
+                "Todavía no tienes materiales cargados en **📦 Inventario de Taller**. "
+                "Registra primero tu inventario para poder descontar materiales aquí."
+            )
+        else:
+            col_e1, col_e2, col_e3, col_e4 = st.columns([2.3, 2.2, 1, 1.2])
+            with col_e1:
+                opciones_ot = df_insp.sort_values("id", ascending=False).apply(
+                    lambda r: f"#{r['id']} · {r['identificador']} · {r['componente']} · "
+                              f"{'✅ Ejecutado' if r.get('ejecutado') == 'Sí' else '⏳ Pendiente'}",
+                    axis=1,
+                ).tolist()
+                seleccion_ot = st.selectbox("Orden de trabajo (registro)", opciones_ot, key="sel_ot_confirmar")
+            with col_e2:
+                opciones_material = df_inventario.apply(
+                    lambda r: f"{r['material']} (disp: {r['cantidad_actual']} {r['unidad']})", axis=1
+                ).tolist()
+                material_sel = st.selectbox("Material usado", opciones_material, key="sel_material_confirmar")
+            with col_e3:
+                cantidad_usada = st.number_input("Cantidad", min_value=1, value=1, step=1, key="cant_usada_confirmar")
+            with col_e4:
+                st.write("")
+                st.write("")
+                confirmar_ejecucion = st.button("✅ Descontar", use_container_width=True, key="btn_confirmar_ot")
+
+            if confirmar_ejecucion and seleccion_ot and material_sel:
+                id_ot = int(seleccion_ot.split("·")[0].replace("#", "").strip())
+                nombre_material = material_sel.split(" (disp:")[0].strip()
+                idx_candidatos = df_inventario[df_inventario["material"] == nombre_material].index
+
+                if len(idx_candidatos) == 0:
+                    st.error("No se encontró el material seleccionado en el inventario.")
+                else:
+                    idx_material = idx_candidatos[0]
+                    stock_actual = float(pd.to_numeric(df_inventario.loc[idx_material, "cantidad_actual"], errors="coerce") or 0)
+
+                    if cantidad_usada > stock_actual:
+                        st.error(
+                            f"No hay suficiente stock de '{nombre_material}'. "
+                            f"Disponible: {stock_actual}. Registra una entrada en Inventario de Taller antes de descontar."
+                        )
+                    else:
+                        # Descontar del inventario
+                        df_inventario.loc[idx_material, "cantidad_actual"] = stock_actual - cantidad_usada
+                        guardar_inventario(df_inventario)
+
+                        # Registrar movimiento de salida
+                        tecnico_ot_series = df_insp.loc[df_insp["id"].astype(str) == str(id_ot), "tecnico"]
+                        tecnico_ot = tecnico_ot_series.values[0] if not tecnico_ot_series.empty else ""
+
+                        nuevo_id_mov = siguiente_id(df_movimientos)
+                        fila_mov = {
+                            "id": nuevo_id_mov,
+                            "fecha": date.today().strftime("%Y-%m-%d"),
+                            "tipo_movimiento": "Salida",
+                            "material": nombre_material,
+                            "cantidad": cantidad_usada,
+                            "motivo": f"Reparación OT #{id_ot}",
+                            "inspeccion_id": id_ot,
+                            "tecnico": tecnico_ot,
+                        }
+                        df_movimientos = pd.concat([df_movimientos, pd.DataFrame([fila_mov])], ignore_index=True)
+                        guardar_movimientos(df_movimientos)
+
+                        # Marcar la inspección como ejecutada
+                        df_insp.loc[df_insp["id"].astype(str) == str(id_ot), "ejecutado"] = "Sí"
+                        df_insp.loc[df_insp["id"].astype(str) == str(id_ot), "fecha_ejecucion"] = date.today().strftime("%Y-%m-%d")
+                        guardar_inspecciones(df_insp)
+
+                        unidad_material = df_inventario.loc[idx_material, "unidad"] or "unidad(es)"
+                        st.success(
+                            f"OT #{id_ot} confirmada. Se descontaron {cantidad_usada} {unidad_material} "
+                            f"de '{nombre_material}' del inventario de taller."
+                        )
+                        st.rerun()
+
         with st.expander("⬇️ Exportar historial completo (CSV)"):
             st.download_button(
                 "Descargar inspecciones.csv",
@@ -544,9 +702,169 @@ elif pagina == "🚦 Historial de Estados":
 
 
 # ==============================================================================
-# PÁGINA 3 · STOCK DE REPUESTOS
+# PÁGINA 2.5 · INVENTARIO DE TALLER
 # ==============================================================================
-elif pagina == "🔧 Stock de Repuestos":
+elif pagina == "📦 Inventario de Taller":
+    st.markdown('<p class="titulo-app">📦 Inventario de Materiales del Taller Eléctrico</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="subtitulo-app">Control del stock físico de materiales eléctricos disponibles para '
+        'reparaciones de cosechadoras y tractores de alce — visible para ti y para tu jefatura.</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown("---")
+
+    with st.expander("➕ Agregar nuevo material al inventario"):
+        with st.form("form_nuevo_material", clear_on_submit=True):
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
+                material_nuevo = st.text_input("Nombre del material", placeholder="Ej: Relé 40A 12V")
+                categoria_nueva = st.selectbox("Categoría", CATEGORIAS, key="cat_nuevo_material")
+            with c2:
+                cantidad_inicial = st.number_input("Cantidad inicial en stock", min_value=0, value=0, step=1)
+                unidad_nueva = st.selectbox("Unidad de medida", UNIDADES_MATERIAL)
+            with c3:
+                cantidad_minima = st.number_input("Cantidad mínima (alerta de stock bajo)", min_value=0, value=2, step=1)
+                costo_unitario_nuevo = st.number_input("Costo unitario ($ COP)", min_value=0.0, value=0.0, step=1000.0)
+            with c4:
+                ubicacion_nueva = st.text_input("Ubicación en taller", placeholder="Ej: Estante B - Caja 3")
+            notas_nuevo = st.text_input("Notas (opcional)")
+            crear_material = st.form_submit_button("Agregar material al inventario", use_container_width=True)
+
+        if crear_material:
+            if not material_nuevo.strip():
+                st.error("Escribe el nombre del material.")
+            else:
+                nuevo_id_inv = siguiente_id(df_inventario)
+                fila_inv = {
+                    "id": nuevo_id_inv,
+                    "material": material_nuevo.strip(),
+                    "categoria": categoria_nueva,
+                    "unidad": unidad_nueva,
+                    "cantidad_actual": int(cantidad_inicial),
+                    "cantidad_minima": int(cantidad_minima),
+                    "costo_unitario": float(costo_unitario_nuevo),
+                    "ubicacion": ubicacion_nueva.strip(),
+                    "notas": notas_nuevo.strip(),
+                }
+                df_inventario = pd.concat([df_inventario, pd.DataFrame([fila_inv])], ignore_index=True)
+                guardar_inventario(df_inventario)
+
+                if cantidad_inicial > 0:
+                    nuevo_id_mov = siguiente_id(df_movimientos)
+                    fila_mov = {
+                        "id": nuevo_id_mov,
+                        "fecha": date.today().strftime("%Y-%m-%d"),
+                        "tipo_movimiento": "Entrada",
+                        "material": material_nuevo.strip(),
+                        "cantidad": int(cantidad_inicial),
+                        "motivo": "Carga inicial de inventario",
+                        "inspeccion_id": "",
+                        "tecnico": "",
+                    }
+                    df_movimientos = pd.concat([df_movimientos, pd.DataFrame([fila_mov])], ignore_index=True)
+                    guardar_movimientos(df_movimientos)
+
+                st.success(f"'{material_nuevo.strip()}' agregado al inventario con {int(cantidad_inicial)} {unidad_nueva}.")
+                st.rerun()
+
+    with st.expander("📥 Registrar entrada de material (compra recibida en bodega)"):
+        if df_inventario.empty:
+            st.info("Agrega primero al menos un material arriba.")
+        else:
+            with st.form("form_entrada_material", clear_on_submit=True):
+                col_i1, col_i2, col_i3 = st.columns(3)
+                with col_i1:
+                    material_entrada = st.selectbox("Material", df_inventario["material"].tolist(), key="material_entrada")
+                with col_i2:
+                    cantidad_entrada = st.number_input("Cantidad que ingresa", min_value=1, value=1, step=1)
+                with col_i3:
+                    motivo_entrada = st.text_input("Motivo / N.º de factura", placeholder="Ej: Compra bodega OC-1023")
+                registrar_entrada = st.form_submit_button("Registrar entrada", use_container_width=True)
+
+            if registrar_entrada:
+                idx = df_inventario[df_inventario["material"] == material_entrada].index[0]
+                stock_actual = float(pd.to_numeric(df_inventario.loc[idx, "cantidad_actual"], errors="coerce") or 0)
+                df_inventario.loc[idx, "cantidad_actual"] = stock_actual + cantidad_entrada
+                guardar_inventario(df_inventario)
+
+                nuevo_id_mov = siguiente_id(df_movimientos)
+                fila_mov = {
+                    "id": nuevo_id_mov,
+                    "fecha": date.today().strftime("%Y-%m-%d"),
+                    "tipo_movimiento": "Entrada",
+                    "material": material_entrada,
+                    "cantidad": cantidad_entrada,
+                    "motivo": motivo_entrada.strip() or "Entrada de material",
+                    "inspeccion_id": "",
+                    "tecnico": "",
+                }
+                df_movimientos = pd.concat([df_movimientos, pd.DataFrame([fila_mov])], ignore_index=True)
+                guardar_movimientos(df_movimientos)
+                st.success(f"Entrada registrada: +{cantidad_entrada} de '{material_entrada}'.")
+                st.rerun()
+
+    st.markdown("##### 📋 Stock actual del taller")
+
+    if df_inventario.empty:
+        st.info("No hay materiales registrados todavía. Usa el formulario de arriba para agregar el primero.")
+    else:
+        df_inv_view = df_inventario.copy()
+        df_inv_view["cantidad_actual"] = pd.to_numeric(df_inv_view["cantidad_actual"], errors="coerce").fillna(0)
+        df_inv_view["cantidad_minima"] = pd.to_numeric(df_inv_view["cantidad_minima"], errors="coerce").fillna(0)
+        df_inv_view["costo_unitario"] = pd.to_numeric(df_inv_view["costo_unitario"], errors="coerce").fillna(0)
+
+        n_bajo_stock = int((df_inv_view["cantidad_actual"] <= df_inv_view["cantidad_minima"]).sum())
+        if n_bajo_stock > 0:
+            st.warning(f"⚠️ Hay **{n_bajo_stock}** material(es) en o por debajo del mínimo definido.")
+
+        editado_inv = st.data_editor(
+            df_inv_view,
+            column_config={
+                "id": st.column_config.NumberColumn("ID", disabled=True),
+                "material": st.column_config.TextColumn("Material", disabled=True),
+                "categoria": st.column_config.SelectboxColumn("Categoría", options=CATEGORIAS),
+                "unidad": st.column_config.SelectboxColumn("Unidad", options=UNIDADES_MATERIAL),
+                "cantidad_actual": st.column_config.NumberColumn("Cantidad actual", disabled=True),
+                "cantidad_minima": st.column_config.NumberColumn("Cantidad mínima"),
+                "costo_unitario": st.column_config.NumberColumn("Costo unitario ($ COP)", format="$ %.0f"),
+                "ubicacion": st.column_config.TextColumn("Ubicación"),
+                "notas": st.column_config.TextColumn("Notas"),
+            },
+            hide_index=True,
+            use_container_width=True,
+            key="editor_inventario",
+        )
+
+        col_g_inv1, col_g_inv2 = st.columns([1, 3])
+        with col_g_inv1:
+            if st.button("💾 Guardar cambios de inventario", use_container_width=True):
+                guardar_inventario(editado_inv)
+                st.success("Inventario actualizado.")
+                st.rerun()
+        with col_g_inv2:
+            st.download_button(
+                "⬇️ Descargar inventario (CSV)",
+                data=df_inventario.to_csv(index=False).encode("utf-8"),
+                file_name="inventario_taller.csv",
+                mime="text/csv",
+            )
+
+        st.markdown("---")
+        st.markdown("##### 📜 Historial de movimientos (entradas y salidas)")
+        if df_movimientos.empty:
+            st.info("Aún no hay movimientos registrados.")
+        else:
+            st.dataframe(
+                df_movimientos.sort_values("id", ascending=False),
+                hide_index=True,
+                use_container_width=True,
+            )
+
+
+# ==============================================================================
+# PÁGINA 3 · REPUESTOS POR COMPRAR
+# ==============================================================================
+elif pagina == "🔧 Repuestos por Comprar":
     st.markdown('<p class="titulo-app">🔧 Repuestos Menores para Dejar en Stock</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitulo-app">Fusibles, relés y terminales que deben quedar listos para no detener '
@@ -627,6 +945,146 @@ elif pagina == "🔧 Stock de Repuestos":
                 "⬇️ Descargar lista de repuestos (CSV)",
                 data=df_stock.to_csv(index=False).encode("utf-8"),
                 file_name="stock_repuestos_mepp.csv",
+                mime="text/csv",
+            )
+
+
+# ==============================================================================
+# PÁGINA 3.5 · PRESUPUESTO POR MÁQUINA
+# ==============================================================================
+elif pagina == "💰 Presupuesto por Máquina":
+    st.markdown('<p class="titulo-app">💰 Presupuesto de Repuestos por Máquina</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="subtitulo-app">Asigna el presupuesto mensual que te informe el Ingenio para cada '
+        'máquina, y IncaVolt calcula automáticamente cuánto llevas gastado según el material que '
+        'descuentas del inventario en cada reparación.</p>',
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        "ℹ️ Esta app no está conectada al sistema interno de Incauca — el presupuesto lo ingresas tú "
+        "manualmente (lo que te informe tu jefatura o Sistemas). El gasto sí se calcula automático a "
+        "partir del inventario que ya llevas en la app."
+    )
+    st.markdown("---")
+
+    with st.expander("➕ Asignar o actualizar presupuesto de una máquina"):
+        with st.form("form_presupuesto", clear_on_submit=True):
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
+                id_maquina_presu = st.text_input("Identificador de máquina", placeholder="Ej: Cosechadora CH-08")
+            with c2:
+                tipo_maquina_presu = st.selectbox("Tipo de máquina", TIPOS_MAQUINA, key="tipo_maquina_presu")
+            with c3:
+                periodo_presu = st.text_input("Período (mes)", value=date.today().strftime("%Y-%m"), placeholder="YYYY-MM")
+            with c4:
+                monto_presu = st.number_input("Presupuesto asignado ($ COP)", min_value=0.0, value=0.0, step=10000.0)
+            notas_presu = st.text_input("Notas (opcional)", placeholder="Ej: Aprobado por jefatura de mantenimiento")
+            guardar_presu_btn = st.form_submit_button("Guardar presupuesto", use_container_width=True)
+
+        if guardar_presu_btn:
+            if not id_maquina_presu.strip() or not periodo_presu.strip():
+                st.error("Completa al menos el identificador de la máquina y el período (YYYY-MM).")
+            else:
+                existe = df_presupuesto[
+                    (df_presupuesto["identificador_maquina"] == id_maquina_presu.strip())
+                    & (df_presupuesto["periodo"] == periodo_presu.strip())
+                ]
+                if not existe.empty:
+                    idx = existe.index[0]
+                    df_presupuesto.loc[idx, "presupuesto_asignado"] = float(monto_presu)
+                    df_presupuesto.loc[idx, "tipo_maquina"] = tipo_maquina_presu
+                    df_presupuesto.loc[idx, "notas"] = notas_presu.strip()
+                    st.success(f"Presupuesto de {id_maquina_presu.strip()} ({periodo_presu.strip()}) actualizado.")
+                else:
+                    nuevo_id_presu = siguiente_id(df_presupuesto)
+                    fila_presu = {
+                        "id": nuevo_id_presu,
+                        "identificador_maquina": id_maquina_presu.strip(),
+                        "tipo_maquina": tipo_maquina_presu,
+                        "periodo": periodo_presu.strip(),
+                        "presupuesto_asignado": float(monto_presu),
+                        "notas": notas_presu.strip(),
+                    }
+                    df_presupuesto = pd.concat([df_presupuesto, pd.DataFrame([fila_presu])], ignore_index=True)
+                    st.success(f"Presupuesto asignado a {id_maquina_presu.strip()} para {periodo_presu.strip()}.")
+                guardar_presupuesto(df_presupuesto)
+                st.rerun()
+
+    st.markdown("##### 📊 Presupuesto vs. gasto ejecutado")
+
+    if df_presupuesto.empty:
+        st.info("Aún no has asignado presupuesto a ninguna máquina. Usa el formulario de arriba para empezar.")
+    else:
+        # Calcular el gasto real: movimientos de Salida (material usado en reparaciones)
+        # cruzados con la inspección (para saber de qué máquina fue) y el costo unitario del inventario.
+        df_gasto = pd.DataFrame(columns=["identificador_maquina", "periodo", "gasto"])
+        if not df_movimientos.empty and not df_insp.empty:
+            mov_salidas = df_movimientos[df_movimientos["tipo_movimiento"] == "Salida"].copy()
+            if not mov_salidas.empty:
+                mov_salidas["cantidad"] = pd.to_numeric(mov_salidas["cantidad"], errors="coerce").fillna(0)
+                mov_salidas["periodo"] = mov_salidas["fecha"].astype(str).str.slice(0, 7)
+
+                mapa_maquina = df_insp.set_index(df_insp["id"].astype(str))["identificador"].to_dict()
+                mov_salidas["identificador_maquina"] = mov_salidas["inspeccion_id"].astype(str).map(mapa_maquina)
+
+                mapa_costo = df_inventario.set_index("material")["costo_unitario"].apply(
+                    lambda x: pd.to_numeric(x, errors="coerce") or 0
+                ).to_dict()
+                mov_salidas["costo_unitario"] = mov_salidas["material"].map(mapa_costo).fillna(0)
+                mov_salidas["gasto"] = mov_salidas["cantidad"] * mov_salidas["costo_unitario"]
+
+                df_gasto = (
+                    mov_salidas.dropna(subset=["identificador_maquina"])
+                    .groupby(["identificador_maquina", "periodo"])["gasto"]
+                    .sum()
+                    .reset_index()
+                )
+
+        df_presu_view = df_presupuesto.copy()
+        df_presu_view["presupuesto_asignado"] = pd.to_numeric(
+            df_presu_view["presupuesto_asignado"], errors="coerce"
+        ).fillna(0)
+        df_presu_view = df_presu_view.merge(
+            df_gasto, on=["identificador_maquina", "periodo"], how="left"
+        )
+        df_presu_view["gasto"] = df_presu_view["gasto"].fillna(0)
+        df_presu_view["saldo"] = df_presu_view["presupuesto_asignado"] - df_presu_view["gasto"]
+        df_presu_view["% usado"] = df_presu_view.apply(
+            lambda r: round((r["gasto"] / r["presupuesto_asignado"]) * 100, 1) if r["presupuesto_asignado"] > 0 else 0,
+            axis=1,
+        )
+
+        for _, fila in df_presu_view.sort_values(["periodo", "identificador_maquina"], ascending=[False, True]).iterrows():
+            pct = fila["% usado"]
+            if pct >= 100:
+                color_barra = ESTADO_INFO["Rojo"]["color"]
+            elif pct >= 75:
+                color_barra = ESTADO_INFO["Amarillo"]["color"]
+            else:
+                color_barra = ESTADO_INFO["Verde"]["color"]
+
+            with st.container(border=True):
+                c1, c2, c3 = st.columns([2.2, 1.3, 1.5])
+                with c1:
+                    st.markdown(f"**{fila['identificador_maquina']}** · {fila['tipo_maquina']}")
+                    st.caption(f"Período: {fila['periodo']}" + (f" · {fila['notas']}" if fila['notas'] else ""))
+                with c2:
+                    st.markdown(f"Presupuesto: **${fila['presupuesto_asignado']:,.0f}**")
+                    st.markdown(f"Gastado: **${fila['gasto']:,.0f}**")
+                with c3:
+                    st.markdown(f"Saldo: **${fila['saldo']:,.0f}**")
+                    st.markdown(
+                        f'<span class="badge" style="background-color:{color_barra}; '
+                        f'box-shadow:0 0 16px {color_barra};">{pct}% usado</span>',
+                        unsafe_allow_html=True,
+                    )
+                st.progress(min(int(pct), 100))
+
+        with st.expander("⬇️ Exportar presupuesto y gasto (CSV)"):
+            st.download_button(
+                "Descargar presupuesto_maquinas.csv",
+                data=df_presu_view.to_csv(index=False).encode("utf-8"),
+                file_name="presupuesto_maquinas.csv",
                 mime="text/csv",
             )
 
