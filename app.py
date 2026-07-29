@@ -64,7 +64,7 @@ def inyectar_pwa():
             }
             addTag('link', {rel: 'manifest', href: 'app/static/manifest.json'});
             addTag('link', {rel: 'apple-touch-icon', href: 'app/static/apple-touch-icon.png'});
-            addTag('meta', {name: 'theme-color', content: '#0B0F14'});
+            addTag('meta', {name: 'theme-color', content: '#0A0E14'});
             addTag('meta', {name: 'apple-mobile-web-app-capable', content: 'yes'});
             addTag('meta', {name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent'});
             addTag('meta', {name: 'apple-mobile-web-app-title', content: 'IncaVolt'});
@@ -116,9 +116,9 @@ TIPOS_MAQUINA = ["Cosechadora John Deere", "Tractor de Alce"]
 ESTADOS = ["Verde", "Amarillo", "Rojo"]
 
 ESTADO_INFO = {
-    "Verde":    {"emoji": "🟢", "label": "Operativo",  "color": "#39FF88", "desc": "Componente en condición normal, sin novedad."},
-    "Amarillo": {"emoji": "🟡", "label": "Alerta",     "color": "#FFD60A", "desc": "Puede continuar operando bajo monitoreo preventivo."},
-    "Rojo":     {"emoji": "🔴", "label": "Crítico",    "color": "#FF3B5C", "desc": "Requiere cambio o intervención urgente."},
+    "Verde":    {"emoji": "🟢", "label": "Operativo",  "color": "#22C55E", "desc": "Componente en condición normal, sin novedad."},
+    "Amarillo": {"emoji": "🟡", "label": "Alerta",     "color": "#F5B400", "desc": "Puede continuar operando bajo monitoreo preventivo."},
+    "Rojo":     {"emoji": "🔴", "label": "Crítico",    "color": "#EF4444", "desc": "Requiere cambio o intervención urgente."},
 }
 
 PRIORIDADES = ["Alta", "Media", "Baja"]
@@ -211,173 +211,258 @@ def siguiente_id(df: pd.DataFrame) -> int:
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Chakra+Petch:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+
+    :root {
+        --iv-bg: #0A0E14;
+        --iv-surface: rgba(255,255,255,0.035);
+        --iv-border: rgba(148,163,184,0.16);
+        --iv-accent: #38BDF8;
+        --iv-accent-strong: #0EA5E9;
+        --iv-text: #E7ECF3;
+        --iv-text-dim: #93A4BD;
+        --iv-verde: #22C55E;
+        --iv-amarillo: #F5B400;
+        --iv-rojo: #EF4444;
+    }
 
     html, body, [class*="css"] {
-        font-family: 'Chakra Petch', sans-serif !important;
-        font-size: 1.12rem;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 1.08rem;
+        color: var(--iv-text);
     }
 
-    /* ---------- Trasfondo general con patrón de circuito ---------- */
+    /* ---------- Trasfondo general: grilla técnica sutil ---------- */
     div[data-testid="stAppViewContainer"] {
-        background-color: #0B0F14;
-        background-image: url('app/static/bg-circuit.svg');
-        background-repeat: repeat;
-        background-size: 240px 240px;
+        background-color: var(--iv-bg);
+        background-image:
+            radial-gradient(ellipse at top, rgba(56,189,248,0.06), transparent 55%),
+            url('app/static/bg-grid.svg');
+        background-repeat: no-repeat, repeat;
+        background-size: 100% 600px, 80px 80px;
     }
     section[data-testid="stSidebar"] > div {
-        background-color: #0E1218;
-        background-image: url('app/static/bg-circuit.svg');
+        background-color: #0C1119;
+        background-image: url('app/static/bg-grid.svg');
         background-repeat: repeat;
-        background-size: 240px 240px;
+        background-size: 80px 80px;
+        border-right: 1px solid var(--iv-border);
     }
     div[data-testid="stHeader"] { background: rgba(0,0,0,0); }
 
+    /* ---------- Barra superior de marca (masthead) ---------- */
+    .iv-masthead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        margin-bottom: 18px;
+        border: 1px solid var(--iv-border);
+        border-radius: 10px;
+        background: linear-gradient(90deg, rgba(56,189,248,0.07), rgba(255,255,255,0.015));
+    }
+    .iv-masthead-left { display: flex; align-items: center; gap: 10px; }
+    .iv-masthead-tag {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.78rem;
+        letter-spacing: 0.5px;
+        color: var(--iv-text-dim);
+        border: 1px solid var(--iv-border);
+        border-radius: 6px;
+        padding: 3px 9px;
+    }
+    .iv-masthead-status {
+        display: flex; align-items: center; gap: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
+        color: var(--iv-verde);
+    }
+    .iv-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--iv-verde);
+        box-shadow: 0 0 6px var(--iv-verde);
+    }
+
     /* ---------- Títulos principales ---------- */
     .titulo-app {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2.5rem;
-        font-weight: 900;
-        letter-spacing: 1px;
-        color: #39FF88;
-        text-shadow: 0 0 14px rgba(57, 255, 136, 0.55), 0 0 2px rgba(57,255,136,0.8);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 2.15rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: var(--iv-text);
         margin-bottom: 2px;
+        border-left: 4px solid var(--iv-accent);
+        padding-left: 14px;
     }
     .subtitulo-app {
-        font-family: 'Chakra Petch', sans-serif;
-        color: #A9F5D6;
-        margin-top: 0px;
-        font-size: 1.25rem;
-        font-weight: 600;
-        letter-spacing: 0.4px;
+        font-family: 'Inter', sans-serif;
+        color: var(--iv-text-dim);
+        margin-top: 4px;
+        margin-left: 18px;
+        font-size: 1.12rem;
+        font-weight: 400;
     }
 
     /* ---------- Encabezados de sección (##### en st.markdown) ---------- */
     h4, h5, h6 {
-        font-family: 'Orbitron', sans-serif !important;
-        color: #5CF2C2 !important;
-        letter-spacing: 0.6px;
-        font-size: 1.4rem !important;
-        text-shadow: 0 0 8px rgba(92, 242, 194, 0.35);
+        font-family: 'Space Grotesk', sans-serif !important;
+        color: var(--iv-text) !important;
+        letter-spacing: 0.2px;
+        font-size: 1.28rem !important;
+        border-bottom: 1px solid var(--iv-border);
+        padding-bottom: 6px;
+        margin-top: 10px !important;
     }
 
     /* ---------- Texto general de párrafos / markdown ---------- */
     div[data-testid="stMarkdownContainer"] p {
-        font-size: 1.14rem;
+        font-size: 1.08rem;
         line-height: 1.55;
+        color: var(--iv-text);
     }
 
     /* ---------- Descripciones (st.caption) ---------- */
     div[data-testid="stCaptionContainer"], div[data-testid="stCaptionContainer"] p {
-        font-size: 1.08rem !important;
-        color: #A9F5D6 !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.2px;
+        font-size: 1.0rem !important;
+        color: var(--iv-text-dim) !important;
+        font-weight: 400 !important;
     }
 
     /* ---------- Etiquetas de campos (labels de inputs/selects) ---------- */
     div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] label {
-        font-family: 'Chakra Petch', sans-serif !important;
-        font-size: 1.18rem !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 1.05rem !important;
         font-weight: 600 !important;
-        color: #D6FFF0 !important;
-        letter-spacing: 0.3px;
+        color: var(--iv-text) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-size: 0.85rem !important;
+        opacity: 0.85;
     }
 
-    /* ---------- Opciones del menú de navegación (radio lateral) ---------- */
+    /* ---------- Navegación lateral ---------- */
+    .iv-nav-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 1.5px;
+        color: var(--iv-text-dim);
+        text-transform: uppercase;
+        margin: 4px 0 6px 2px;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] {
+        gap: 2px;
+    }
     section[data-testid="stSidebar"] div[role="radiogroup"] label p {
-        font-family: 'Chakra Petch', sans-serif !important;
-        font-size: 1.35rem !important;
-        font-weight: 700 !important;
-        color: #EAFFF6 !important;
-        letter-spacing: 0.3px;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 1.04rem !important;
+        font-weight: 600 !important;
+        color: var(--iv-text) !important;
+        letter-spacing: 0.1px;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] label {
-        padding: 6px 0;
+        padding: 9px 10px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        transition: none;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+        background: rgba(56,189,248,0.07);
+        border: 1px solid var(--iv-border);
     }
 
     /* ---------- Texto dentro de tablas / data editor ---------- */
     div[data-testid="stDataFrame"] * , div[data-testid="stTable"] * {
-        font-size: 1.02rem !important;
+        font-size: 0.98rem !important;
+        font-family: 'Inter', sans-serif !important;
     }
 
-    /* ---------- Badges de estado (semáforo) ---------- */
+    /* ---------- Badges de estado (semáforo) — pill sobrio, sin glow ---------- */
     .badge {
-        display: inline-block;
-        padding: 6px 18px;
-        border-radius: 20px;
-        color: #05100A;
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 700;
-        font-size: 1.1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 600;
+        font-size: 0.92rem;
         text-align: center;
-        box-shadow: 0 0 16px currentColor;
+        letter-spacing: 0.3px;
+        border: 1px solid currentColor;
+        background: color-mix(in srgb, currentColor 14%, transparent);
     }
 
-    /* ---------- Tarjetas KPI tipo panel futurista ---------- */
+    /* ---------- Tarjetas KPI: estilo panel de control industrial ---------- */
     .card-kpi {
         position: relative;
-        border-radius: 16px;
-        padding: 28px 18px;
-        text-align: center;
-        background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015));
-        border: 1px solid rgba(57, 255, 136, 0.35);
-        box-shadow: 0 0 24px rgba(57, 255, 136, 0.15), inset 0 0 20px rgba(255,255,255,0.03);
-        backdrop-filter: blur(6px);
+        border-radius: 10px;
+        padding: 20px 18px 18px 20px;
+        text-align: left;
+        background: var(--iv-surface);
+        border: 1px solid var(--iv-border);
+        border-left: 3px solid currentColor;
+        box-shadow: 0 2px 14px rgba(0,0,0,0.25);
     }
     .card-kpi h1 {
         margin: 0;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2.9rem;
-        font-weight: 900;
-        text-shadow: 0 0 18px currentColor;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 2.3rem;
+        font-weight: 700;
+        color: var(--iv-text);
     }
     .card-kpi p {
-        margin: 8px 0 0 0;
-        font-size: 1.08rem;
+        margin: 4px 0 0 0;
+        font-size: 0.82rem;
         font-weight: 600;
-        letter-spacing: 0.4px;
-        opacity: 0.95;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--iv-text-dim);
+        font-family: 'JetBrains Mono', monospace;
     }
 
     /* ---------- Contenedores generales (st.container(border=True)) ---------- */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-radius: 14px !important;
-        border: 1px solid rgba(57, 255, 136, 0.18) !important;
-        background: rgba(255,255,255,0.025);
+        border-radius: 10px !important;
+        border: 1px solid var(--iv-border) !important;
+        background: var(--iv-surface);
     }
 
     /* ---------- Botones ---------- */
     button[kind="primary"], .stButton>button, .stFormSubmitButton>button {
-        font-family: 'Orbitron', sans-serif !important;
-        letter-spacing: 0.5px;
-        font-weight: 700 !important;
-        font-size: 1.02rem !important;
-        border-radius: 10px !important;
-        border: 1px solid rgba(57, 255, 136, 0.5) !important;
-        box-shadow: 0 0 14px rgba(57, 255, 136, 0.25);
+        font-family: 'Inter', sans-serif !important;
+        letter-spacing: 0.2px;
+        font-weight: 600 !important;
+        font-size: 0.98rem !important;
+        border-radius: 7px !important;
+        border: 1px solid var(--iv-border) !important;
+        background: linear-gradient(180deg, rgba(56,189,248,0.16), rgba(56,189,248,0.06)) !important;
+        color: var(--iv-text) !important;
+        box-shadow: none !important;
+    }
+    button[kind="primary"]:hover, .stButton>button:hover, .stFormSubmitButton>button:hover {
+        border-color: var(--iv-accent) !important;
     }
 
     /* ---------- Sidebar ---------- */
-    section[data-testid="stSidebar"] {
-        border-right: 1px solid rgba(57, 255, 136, 0.25);
-    }
     section[data-testid="stSidebar"] h3 {
-        font-family: 'Orbitron', sans-serif !important;
-        color: #39FF88 !important;
-        text-shadow: 0 0 10px rgba(57,255,136,0.5);
-        font-size: 1.5rem !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        color: var(--iv-text) !important;
+        font-size: 1.35rem !important;
+        font-weight: 700 !important;
     }
 
     /* ---------- Métricas nativas (st.metric) ---------- */
     div[data-testid="stMetricValue"] {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2rem;
-        text-shadow: 0 0 10px rgba(57,255,136,0.35);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.8rem;
+        color: var(--iv-text);
     }
     div[data-testid="stMetricLabel"] p {
-        font-size: 1.05rem !important;
-        color: #A9F5D6 !important;
+        font-size: 0.82rem !important;
+        color: var(--iv-text-dim) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: 'JetBrains Mono', monospace;
     }
     </style>
     """,
@@ -385,12 +470,32 @@ st.markdown(
 )
 
 
+def masthead():
+    """Barra superior de marca, consistente en todas las páginas
+    (referencia visual tipo panel de control industrial)."""
+    st.markdown(
+        f"""
+        <div class="iv-masthead">
+            <div class="iv-masthead-left">
+                <span style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.05rem; color:var(--iv-text);">⚡ {NOMBRE_APP}</span>
+                <span class="iv-masthead-tag">MEPP · MANTENIMIENTO ELÉCTRICO PREVENTIVO</span>
+            </div>
+            <div class="iv-masthead-status">
+                <span class="iv-dot"></span> SISTEMA ACTIVO · {date.today().strftime('%d/%m/%Y')}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def badge_estado(estado: str) -> str:
-    info = ESTADO_INFO.get(estado, {"color": "#999", "emoji": "⚪", "label": estado})
+    info = ESTADO_INFO.get(estado, {"color": "#999", "emoji": "●", "label": estado})
     color = info["color"]
     return (
-        f'<span class="badge" style="background-color:{color}; '
-        f'box-shadow:0 0 16px {color};">{info["emoji"]} {info["label"]}</span>'
+        f'<span class="badge" style="color:{color}; border-color:{color};">'
+        f'<span style="width:7px;height:7px;border-radius:50%;background:{color};display:inline-block;"></span>'
+        f'{info["label"].upper()}</span>'
     )
 
 
@@ -408,16 +513,18 @@ with st.sidebar:
         st.markdown(f"### {NOMBRE_APP}")
     st.caption(SUBTITULO_APP)
     st.markdown("---")
+    st.markdown('<p class="iv-nav-label">NAVEGACIÓN</p>', unsafe_allow_html=True)
     pagina = st.radio(
         "Ir a:",
         [
-            "📋 Registrar Inspección",
-            "🚦 Historial y Ejecución de OT",
+            "🧾 Registrar Inspección",
+            "🛠️ Historial y Ejecución de OT",
             "📦 Inventario de Taller",
-            "💰 Presupuesto por Máquina",
-            "🔧 Repuestos por Comprar",
-            "📊 Dashboard Supervisor",
+            "🧮 Presupuesto por Máquina",
+            "📥 Repuestos por Comprar",
+            "📈 Dashboard Supervisor",
         ],
+        label_visibility="collapsed",
     )
     st.markdown("---")
     st.caption("Ingenio Incauca | Área de Mantenimiento Eléctrico")
@@ -436,8 +543,9 @@ df_presupuesto = cargar_presupuesto()
 # ==============================================================================
 # PÁGINA 1 · REGISTRAR INSPECCIÓN
 # ==============================================================================
-if pagina == "📋 Registrar Inspección":
-    st.markdown('<p class="titulo-app">📋 Registro de Inspección Eléctrica Preventiva</p>', unsafe_allow_html=True)
+if pagina == "🧾 Registrar Inspección":
+    masthead()
+    st.markdown('<p class="titulo-app">🧾 Registro de Inspección Eléctrica Preventiva</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitulo-app">Registra la revisión de sensores, relés, fusibles, cableados y luces '
         'en máquinas en standby o tractores quieteros.</p>',
@@ -534,8 +642,9 @@ if pagina == "📋 Registrar Inspección":
 # ==============================================================================
 # PÁGINA 2 · HISTORIAL DE ESTADOS
 # ==============================================================================
-elif pagina == "🚦 Historial y Ejecución de OT":
-    st.markdown('<p class="titulo-app">🚦 Historial, Semáforo y Ejecución de Órdenes de Trabajo</p>', unsafe_allow_html=True)
+elif pagina == "🛠️ Historial y Ejecución de OT":
+    masthead()
+    st.markdown('<p class="titulo-app">🛠️ Historial, Semáforo y Ejecución de Órdenes de Trabajo</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitulo-app">Consulta todas las inspecciones registradas, actualiza el estado y '
         'confirma la ejecución de reparaciones descontando el material usado del inventario.</p>',
@@ -705,6 +814,7 @@ elif pagina == "🚦 Historial y Ejecución de OT":
 # PÁGINA 2.5 · INVENTARIO DE TALLER
 # ==============================================================================
 elif pagina == "📦 Inventario de Taller":
+    masthead()
     st.markdown('<p class="titulo-app">📦 Inventario de Materiales del Taller Eléctrico</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitulo-app">Control del stock físico de materiales eléctricos disponibles para '
@@ -864,8 +974,9 @@ elif pagina == "📦 Inventario de Taller":
 # ==============================================================================
 # PÁGINA 3 · REPUESTOS POR COMPRAR
 # ==============================================================================
-elif pagina == "🔧 Repuestos por Comprar":
-    st.markdown('<p class="titulo-app">🔧 Repuestos Menores para Dejar en Stock</p>', unsafe_allow_html=True)
+elif pagina == "📥 Repuestos por Comprar":
+    masthead()
+    st.markdown('<p class="titulo-app">📥 Repuestos Menores para Dejar en Stock</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitulo-app">Fusibles, relés y terminales que deben quedar listos para no detener '
         'la máquina cuando salga de standby.</p>',
@@ -952,8 +1063,9 @@ elif pagina == "🔧 Repuestos por Comprar":
 # ==============================================================================
 # PÁGINA 3.5 · PRESUPUESTO POR MÁQUINA
 # ==============================================================================
-elif pagina == "💰 Presupuesto por Máquina":
-    st.markdown('<p class="titulo-app">💰 Presupuesto de Repuestos por Máquina</p>', unsafe_allow_html=True)
+elif pagina == "🧮 Presupuesto por Máquina":
+    masthead()
+    st.markdown('<p class="titulo-app">🧮 Presupuesto de Repuestos por Máquina</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitulo-app">Asigna el presupuesto mensual que te informe el Ingenio para cada '
         'máquina, y IncaVolt calcula automáticamente cuánto llevas gastado según el material que '
@@ -1074,8 +1186,9 @@ elif pagina == "💰 Presupuesto por Máquina":
                 with c3:
                     st.markdown(f"Saldo: **${fila['saldo']:,.0f}**")
                     st.markdown(
-                        f'<span class="badge" style="background-color:{color_barra}; '
-                        f'box-shadow:0 0 16px {color_barra};">{pct}% usado</span>',
+                        f'<span class="badge" style="color:{color_barra}; border-color:{color_barra};">'
+                        f'<span style="width:7px;height:7px;border-radius:50%;background:{color_barra};display:inline-block;"></span>'
+                        f'{pct}% USADO</span>',
                         unsafe_allow_html=True,
                     )
                 st.progress(min(int(pct), 100))
@@ -1092,8 +1205,9 @@ elif pagina == "💰 Presupuesto por Máquina":
 # ==============================================================================
 # PÁGINA 4 · DASHBOARD SUPERVISOR
 # ==============================================================================
-elif pagina == "📊 Dashboard Supervisor":
-    st.markdown('<p class="titulo-app">📊 Panel de Supervisión de Mantenimiento Eléctrico</p>', unsafe_allow_html=True)
+elif pagina == "📈 Dashboard Supervisor":
+    masthead()
+    st.markdown('<p class="titulo-app">📈 Panel de Supervisión de Mantenimiento Eléctrico</p>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitulo-app">Visión general para que la jefatura organice compras y priorice '
         'intervenciones antes del arranque de zafra.</p>',
@@ -1131,19 +1245,19 @@ elif pagina == "📊 Dashboard Supervisor":
 
         k1, k2, k3, k4, k5 = st.columns(5)
         tarjetas = [
-            (k1, "Componentes revisados", total, "#5CF2C2"),
-            (k2, "🟢 Operativos", n_verde, ESTADO_INFO["Verde"]["color"]),
-            (k3, "🟡 En alerta", n_amarillo, ESTADO_INFO["Amarillo"]["color"]),
-            (k4, "🔴 Críticos", n_rojo, ESTADO_INFO["Rojo"]["color"]),
-            (k5, "% en alerta / crítico", f"{pct_critico}%", "#8BD8FF"),
+            (k1, "Componentes revisados", total, "#38BDF8"),
+            (k2, "Operativos", n_verde, ESTADO_INFO["Verde"]["color"]),
+            (k3, "En alerta", n_amarillo, ESTADO_INFO["Amarillo"]["color"]),
+            (k4, "Críticos", n_rojo, ESTADO_INFO["Rojo"]["color"]),
+            (k5, "% en alerta / crítico", f"{pct_critico}%", "#A78BFA"),
         ]
         for col, titulo, valor, color in tarjetas:
             with col:
                 st.markdown(
                     f"""
-                    <div class="card-kpi" style="border-color:{color}; box-shadow:0 0 22px {color}55, inset 0 0 20px rgba(255,255,255,0.03); color:{color};">
-                        <h1>{valor}</h1>
-                        <p style="color:#E8FFF3;">{titulo}</p>
+                    <div class="card-kpi" style="color:{color};">
+                        <h1 style="color:#E7ECF3;">{valor}</h1>
+                        <p>{titulo}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,

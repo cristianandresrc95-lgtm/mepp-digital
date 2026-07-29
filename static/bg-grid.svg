@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <style>
+      .g { stroke: #38BDF8; stroke-opacity: 0.045; stroke-width: 1; }
+      .gm { stroke: #38BDF8; stroke-opacity: 0.09; stroke-width: 1; }
+      .d { fill: #38BDF8; fill-opacity: 0.10; }
+    </style>
+  </defs>
+  <path class="g" d="M0,0 H80"/>
+  <path class="g" d="M0,0 V80"/>
+  <path class="gm" d="M0,40 H80"/>
+  <path class="gm" d="M40,0 V80"/>
+  <circle class="d" cx="0" cy="0" r="1.4"/>
+  <circle class="d" cx="40" cy="0" r="1.1"/>
+  <circle class="d" cx="0" cy="40" r="1.1"/>
+  <circle class="d" cx="40" cy="40" r="1.4"/>
+</svg>
